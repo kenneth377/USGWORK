@@ -52,6 +52,7 @@
     border-radius: 10px;
     background: #CB3CFF;
     border: none;
+    z-index: 1000;
   }
   
   .cancel-button {

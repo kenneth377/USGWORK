@@ -4,47 +4,30 @@ import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import imgavatar from "../components/img/avatar.svg";
 import { FetchData } from './Fectchdata';
 
-// Sample model data
-const mockDat = [
-  { id: 1, service_id: 'Auth Service', user_id: 'User1', action: 'started', reason: 'Initial setup', timestamp: '2024-10-24 12:00:00' },
-  { id: 2, service_id: 'Database Service', user_id: 'User2', action: 'stopped', reason: 'Maintenance', timestamp: '2024-10-24 12:05:00' },
-  { id: 3, service_id: 'API Gateway', user_id: 'User3', action: 'started', reason: 'Scaling up', timestamp: '2024-10-24 12:10:00' },
-  { id: 4, service_id: 'Logging Service', user_id: 'User1', action: 'started', reason: 'Daily log', timestamp: '2024-10-24 12:15:00' },
-  { id: 5, service_id: 'Monitoring Service', user_id: 'User2', action: 'stopped', reason: 'Server downtime', timestamp: '2024-10-24 12:20:00' },
-  { id: 6, service_id: 'Cache Service', user_id: 'User3', action: 'started', reason: 'Cache refresh', timestamp: '2024-10-24 12:25:00' },
-  { id: 7, service_id: 'Email Service', user_id: 'User1', action: 'stopped', reason: 'User request', timestamp: '2024-10-24 12:30:00' },
-  { id: 8, service_id: 'Payment Service', user_id: 'User2', action: 'started', reason: 'New deployment', timestamp: '2024-10-24 12:35:00' },
-  { id: 9, service_id: 'Notification Service', user_id: 'User3', action: 'started', reason: 'Event trigger', timestamp: '2024-10-24 12:40:00' },
-  { id: 10, service_id: 'User Management', user_id: 'User1', action: 'stopped', reason: 'User logout', timestamp: '2024-10-24 12:45:00' },
-];
-
 export default function Activities() {
   const [filterAction, setFilterAction] = useState('');
   const [filterTimestamp, setFilterTimestamp] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-  const [mockData, setMockdata] = useState(mockDat)
+  const [activityData, setActivityData] = useState([]); // Fetched data from API
 
   useEffect(() => {
     const fetchLogs = async () => {
       try {
         const data = await FetchData('http://localhost:3000/logs');
         console.log("Fetched data:", data);
-        setMockdata(data.data)
+        setActivityData(data.data || []); // Assuming `data.data` holds the array
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
+    fetchLogs();
+  }, []);
 
-    fetchLogs(); // Don't forget to call the async function!
-  }, []); // Empty dependency array so it runs once after the initial render
-
-  const filteredData = mockData.filter((activity) => {
+  const filteredData = activityData.filter((activity) => {
     const matchesAction = filterAction ? activity.action === filterAction : true;
-    const matchesTimestamp = filterTimestamp
-      ? activity.timestamp.includes(filterTimestamp)
-      : true;
+    const matchesTimestamp = filterTimestamp ? activity.timestamp.includes(filterTimestamp) : true;
     const matchesSearch = searchTerm
       ? activity.user_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         activity.id.toString().includes(searchTerm)
@@ -148,7 +131,11 @@ export default function Activities() {
                       )}
                     </span>
                   </td>
-                  <td className="reason-column">{activity.reason}</td>
+                  <td className="reason-column">
+                    {activity.reason.length > 30
+                      ? `${activity.reason.slice(0, 30)}...`
+                      : activity.reason}
+                  </td>
                   <td>{activity.timestamp}</td>
                 </tr>
               ))
@@ -172,7 +159,7 @@ export default function Activities() {
           Previous
         </button>
         <span className="pagination-info">
-        {totalPages>0 && `Page ${currentPage} of ${totalPages}`}
+          {totalPages > 0 && `Page ${currentPage} of ${totalPages}`}
         </span>
         <button
           onClick={handleNextPage}

@@ -1,82 +1,109 @@
 import React, { useEffect, useState } from 'react';
-import { Spin } from 'antd';
+import { Spin, Modal, Input, message } from 'antd';
 import './styles/services.css';
-import { FetchData, postData, updateData} from './Fectchdata'; // Import postData function
+import { FetchData, postData, updateData } from './Fectchdata';
 
 const servicesData = Array.from({ length: 24 }, (_, index) => ({
   id: index + 1,
-  name: `Servicesdajkskajkjsajkasjkaskjaskjaskj ${index + 1}`,
-  isRunning: 0, // Assuming 'isRunning' means if the service is running or not (0 = off, 1 = on)
+  name: `Service ${index + 1}`,
+  isRunning: 0,
 }));
 
 const Services = () => {
   const [services, setServices] = useState(servicesData);
   const [loading, setLoading] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isReasonModalVisible, setIsReasonModalVisible] = useState(false);
+  const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [reason, setReason] = useState('');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const data = await FetchData('http://localhost:3000/services');
-        console.log("Fetched data:", data);
-        setServices(data.data); // Assuming that `data` is the array of services from the API
+        setServices(data.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        message.error('Error fetching services');
       }
     };
+    fetchServices();
+  }, []);
 
-    fetchServices(); // Don't forget to call the async function!
-  }, []); // Empty dependency array so it runs once after the initial render
+  const showToggleConfirmation = (service) => {
+    setSelectedService(service);
+    setIsModalVisible(true);
+  };
 
-  const toggleServiceStatus = async (id) => {
-    const service = services.find((s) => s.id === id);
-    const newStatus = service.isRunning === 1 ? 0 : 1; // Toggle the status
+  const handleModalOk = () => {
+    setIsModalVisible(false);
+    setIsReasonModalVisible(true);
+  };
 
-    // Show a loading indicator while the request is being processed
-    setLoading(true);
+  const handleReasonModalOk = () => {
+    setIsReasonModalVisible(false);
+    setIsPasswordModalVisible(true);
+  };
+
+  const handlePasswordModalOk = async () => {
+    setConfirmLoading(true);
 
     try {
-      // Make a POST request to update the service status
-      const response = await updateData(`http://localhost:3000/service/${id}`, { isRunning: newStatus });
+      const newStatus = selectedService.isRunning === 1 ? 0 : 1;
+      const response = await updateData(`http://localhost:3000/service/${selectedService.id}`, {
+        isRunning: newStatus,
+        reason,
+        password,
+      });
 
       if (response.success) {
-        // Update the local state if the request was successful
         setServices((prevServices) =>
-          prevServices.map((service) =>
-            service.id === id ? { ...service, isRunning: newStatus } : service
+          prevServices.map((s) =>
+            s.id === selectedService.id ? { ...s, isRunning: newStatus } : s
           )
         );
+        message.success(`Service ${newStatus ? 'started' : 'stopped'} successfully`);
 
-        // const logrs = await postData()
+        const logEntry = {
+          service_id: selectedService.id,
+          user_id: "1",
+          action: newStatus === 1 ? "started" : "stopped",
+          reason:reason,
+          timestamp: new Date().toISOString(),
+        };
+        await postData('http://localhost:3000/logs', logEntry);
       } else {
-        console.error("Error updating service status:", response.error);
+        message.error('Failed to update service status');
       }
     } catch (error) {
-      console.error("Error in toggling service:", error);
+      message.error('Error toggling service');
     } finally {
-      // Hide the loading indicator after the request completes
-      setLoading(false);
+      setConfirmLoading(false);
+      setIsPasswordModalVisible(false);
+      setPassword('');
+      setReason('');
     }
   };
 
   return (
     <div className="rack-container">
-      {loading && <Spin className="loading-spinner" />} {/* Loading spinner */}
+      {loading && <Spin className="loading-spinner" />}
       <div className="rack">
         {services.map((service) => (
           <div
-            className={`service-slot ${service.isRunning === 1 ? "on" : "off"}`}
+            className={`service-slot ${service.isRunning === 1 ? 'on' : 'off'}`}
             key={service.id}
           >
             <div className="service-details">
               <div className="service-name" title={service.name}>
                 {service.name}
               </div>
-              {service.isRunning === 1 ? (
-                <Spin size="small" style={{ marginRight: '10px' }} />
-              ) : null}
+              {service.isRunning === 1 && <Spin size="small" style={{ marginRight: '10px' }} />}
               <button
                 className="toggle-btn"
-                onClick={() => toggleServiceStatus(service.id)}
+                onClick={() => showToggleConfirmation(service)}
               >
                 {service.isRunning === 1 ? 'Turn Off' : 'Turn On'}
               </button>
@@ -84,6 +111,42 @@ const Services = () => {
           </div>
         ))}
       </div>
+
+      <Modal
+        title={`Do you want to ${selectedService?.isRunning ? 'stop' : 'start'} this service?`}
+        visible={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+      >
+        <p>Confirm your action</p>
+      </Modal>
+
+      <Modal
+        title="Please provide a reason"
+        visible={isReasonModalVisible}
+        onOk={handleReasonModalOk}
+        onCancel={() => setIsReasonModalVisible(false)}
+      >
+        <Input.TextArea
+          placeholder="Reason for this action"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+      </Modal>
+
+      <Modal
+        title="Enter your password to confirm"
+        visible={isPasswordModalVisible}
+        onOk={handlePasswordModalOk}
+        onCancel={() => setIsPasswordModalVisible(false)}
+        confirmLoading={confirmLoading}
+      >
+        <Input.Password
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </Modal>
     </div>
   );
 };

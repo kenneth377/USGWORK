@@ -1,32 +1,28 @@
-.sidebar{
+.sidebar {
     display: flex;
-    flex-direction: column;    
+    flex-direction: column;
 }
 
-.sidebar>div{
+.sidebar > div {
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
 }
 
-.logo{
+.logo {
     flex-basis: 15%;
-
 }
 
-.navlinks{
+.navlinks {
     flex-basis: 60%;
-
 }
 
-
-.logandlock{
+.logandlock {
     flex-basis: 25%;
-
 }
 
-.link{
+.link {
     width: 80%;
     padding: 5px;
     text-align: left;
@@ -34,16 +30,11 @@
     color: var(--textcolpr);
 }
 
-.link.active{
-    color: rebeccapurple;
+.link.active {
+    color:  var(--othercolor);
 }
 
-.link:hover{
+.link:hover {
     color: white;
     cursor: pointer;
 }
-
-
-/* .activelink{
-    color: ;
-} */

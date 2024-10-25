@@ -207,6 +207,48 @@ app.post('/logs', (req, res) => {
 });
 
 
+app.get('/scheduled-activities', (req, res) => {
+    db.query('SELECT id, user_id, service_id, activity_time, status, created_at, action_type, schedule_reason, service_action FROM scheduled_activities', (err, results) => {
+        if (err) {
+            console.error("Error while retrieving scheduled activities:", err);
+            return res.status(500).json({
+                responsestatus: "error",
+                message: "An error occurred while retrieving scheduled activities. Please try again later."
+            });
+        }
+        res.json({ responsestatus: "success", data: results });
+    });
+});
+
+
+app.post('/scheduled-activities', (req, res) => {
+    const { user_id, service_id, activity_time, status, action_type, schedule_reason, service_action } = req.body;
+    console.log(req.body)
+    // Validate required fields
+    if (!user_id || !service_id || !activity_time || !action_type || !schedule_reason || !service_action) {
+        return res.status(400).json({
+            responsestatus: "error",
+            message: "User ID, Service ID, Activity Time, Action Type, Schedule Reason, and Service Action are required"
+        });
+    }
+
+    // Insert the new scheduled activity
+    const query = 'INSERT INTO scheduled_activities (user_id, service_id, activity_time, status, action_type, schedule_reason, service_action) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const values = [user_id, service_id, activity_time, status || 'pending', action_type, schedule_reason, service_action];
+
+    db.query(query, values, (err) => {
+        if (err) {
+            console.error('Error adding scheduled activity:', err);
+            return res.status(500).json({
+                responsestatus: "error",
+                message: "An error occurred while adding the scheduled activity"
+            });
+        }
+        res.json({ responsestatus: "success", message: "Scheduled activity added successfully" });
+    });
+});
+
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
