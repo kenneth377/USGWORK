@@ -81,9 +81,15 @@ export default function Scheduler() {
 
   const dateCellRender = (value) => {
     const count = getEventCount(value);
+
+    console.log("myval", value)
     return (
       <div style={{ textAlign: 'center' }}>
-        <Badge count={count} style={{ backgroundColor: count > 0 ? '#52c41a' : undefined }} />
+        {count > 0 ? (
+          <Badge count={`${value.date()}: ${count}`} style={{ backgroundColor: '#52c41a' }} />
+        ) : (
+          <Badge count={count} />
+        )}
       </div>
     );
   };

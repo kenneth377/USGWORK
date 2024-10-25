@@ -11,25 +11,57 @@ export default function Activities() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
   const [activityData, setActivityData] = useState([]); // Fetched data from API
+  const [services, setServices] = useState({}); // Service data
+  const [users, setUsers] = useState({})
 
   useEffect(() => {
     const fetchLogs = async () => {
       try {
         const data = await FetchData('http://localhost:3000/logs');
-        console.log("Fetched data:", data);
         setActivityData(data.data || []); // Assuming `data.data` holds the array
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching activity data:", error);
       }
     };
+
+    const fetchServices = async () => {
+      try {
+        const data = await FetchData('http://localhost:3000/services');
+        const servicesMap = data.data.reduce((map, service) => {
+          map[service.id] = service.name;
+          return map;
+        }, {});
+        setServices(servicesMap);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      }
+    };
+
+    const fetchUsers = async () => {
+      try {
+        const data = await FetchData('http://localhost:3000/users');
+        console.log("datu", data)
+        const usersMap = data.users.reduce((map, user) => {
+          map[user.id] = user.name;
+          return map;
+        }, {});
+        console.log("sjeskds", usersMap)
+        setUsers(usersMap);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      }
+    };
+
     fetchLogs();
+    fetchServices();
+    fetchUsers()
   }, []);
 
   const filteredData = activityData.filter((activity) => {
     const matchesAction = filterAction ? activity.action === filterAction : true;
     const matchesTimestamp = filterTimestamp ? activity.timestamp.includes(filterTimestamp) : true;
     const matchesSearch = searchTerm
-      ? activity.user_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ? activity.user_id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
         activity.id.toString().includes(searchTerm)
       : true;
 
@@ -111,7 +143,7 @@ export default function Activities() {
               paginatedData.map((activity) => (
                 <tr key={activity.id}>
                   <td>{activity.id}</td>
-                  <td>{activity.service_id}</td>
+                  <td>{services[activity.service_id] || "Unknown Service"}</td>
                   <td>
                     <div className="user-info">
                       <img
@@ -119,7 +151,7 @@ export default function Activities() {
                         alt={`User ID: ${activity.user_id}`}
                         className="user-avatar"
                       />
-                      <span className="user-id">User ID: {activity.user_id}</span>
+                      <span className="user-id">{users[activity.user_id]}</span>
                     </div>
                   </td>
                   <td>
@@ -132,8 +164,8 @@ export default function Activities() {
                     </span>
                   </td>
                   <td className="reason-column">
-                    {activity.reason.length > 30
-                      ? `${activity.reason.slice(0, 30)}...`
+                    {activity.reason.length > 10
+                      ? `${activity.reason.slice(0, 10)}...`
                       : activity.reason}
                   </td>
                   <td>{activity.timestamp}</td>
