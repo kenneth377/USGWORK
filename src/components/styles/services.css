@@ -1,0 +1,100 @@
+:root {
+    --primarybg: #0A1330;
+    --secondarybg: #081028;
+    --tertiarybg: #0B1739;
+    --textcolpr: #AEB9E1;
+    --textcolsc: #fff;
+  }
+  
+  .rack-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: var(--primarybg);
+  }
+  
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    gap: 10px;
+    grid-column-gap: 20px;
+    width: 100%;
+    max-width: 800px;
+    background-color: var(--secondarybg);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    height: 90vh;
+  }
+  
+  .service-slot {
+    background-color: var(--tertiarybg);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .service-slot:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+  
+  .service-slot.on {
+    background-color: #CB3CFF;
+    color: var(--primarybg); /* Green for "on" state */
+    animation: pulse 0.5s infinite alternate; /* Add animation when on */
+  }
+  
+  @keyframes pulse {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.01);
+    }
+  }
+  
+  .service-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    color: var(--primarybg);
+  }
+  
+  .service-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 12ch;
+    padding-right: 15px;
+    font-size: 14px;
+  }
+  
+  .toggle-btn {
+    background-color: var(--primarybg);
+    color: var(--textcolsc);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .toggle-btn:hover {
+    background-color: var(--textcolpr);
+    color: var(--primarybg);
+  }
+  
+  .service-slot.off {
+    background-color: #f5f5f5;
+    color: var(--primarybg);/* Red for "off" state */
+  }
+  

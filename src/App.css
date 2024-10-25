@@ -1,3 +1,12 @@
+
+:root{
+  --primarybg:#0A1330;
+  --secondarybg:#081028 ;
+  --tertiarybg:#0B1739;
+  --textcolpr:#AEB9E1;
+  --textcolsc:#fff
+}
+
 .App {
   text-align: center;
   display: grid;
@@ -6,22 +15,31 @@
   grid-gap: 10px;
   height: 100vh;
   width: 100vw;
+  background-color: var(--secondarybg);
+  color: var(--textcolpr);
 }
 
-.App>div{
-  border: 2px solid red;
- 
-}
+
 
 .sidebar{
   grid-column: span 2;
   grid-row: span 17;
-  background-color: red;
+  background-color: var(--primarybg)
 }
 
 .header{
   grid-column: span 10;
   grid-row: span 2;
-  background-color: red;
+  background-color: var(--primarybg)
+}
+
+.content{
+  grid-column: span 10;
+  grid-row: span 15;
+  padding: 5px;
+  overflow-y: auto;
+  /* background-color: var(--tertiarybg); */
+  border-radius: 5px;
+
 }
 

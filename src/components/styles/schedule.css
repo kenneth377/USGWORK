@@ -1,0 +1,142 @@
+:root {
+    --primarybg: #0A1330;
+    --secondarybg: #081028;
+    --tertiarybg: #0B1739;
+    --textcolpr: #AEB9E1;
+    --textcolsc: #fff;
+  }
+  
+  .schedule-container {
+    background: var(--secondarybg);
+    color: var(--textcolpr);
+    padding: 20px;
+    border-radius: 8px;
+  }
+  
+  .schedule-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .actions-list {
+    margin: 20px 0;
+  }
+  
+  .action-card {
+    background: var(--tertiarybg);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  
+  .action-card:hover {
+    transform: scale(1.02);
+  }
+  
+  .past-event {
+    background: rgba(255, 0, 0, 0.1);
+    border-left: 4px solid red;
+  }
+  
+  .no-events-message {
+    color: var(--textcolsc);
+    text-align: center;
+  }
+  
+  .floating-button {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    border-radius: 10px;
+    background: #CB3CFF;
+    border: none;
+  }
+  
+  .cancel-button {
+    background: #ff4d4f;
+    border: none;
+  }
+  
+  .cancel-button:hover {
+    background: #ff7875;
+  }
+  
+  .schedule-button {
+    background: var(--primarybg);
+    color: var(--textcolsc);
+  }
+  
+  .schedule-button:hover {
+    background: #0050b3;
+  }
+  
+
+
+  .past-event {
+    background: rgba(255, 0, 0, 0.1);
+    border-left: 4px solid red;
+  }
+  
+  .action-card {
+    background: var(--tertiarybg);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  
+  .action-card:hover {
+    transform: scale(1.02);
+  }
+  
+
+  
+  .action-card {
+    background: var(--tertiarybg);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  
+  .past-event {
+    background: rgba(255, 0, 0, 0.1);
+    border-left: 4px solid red;
+  }
+  
+  .schedule-title {
+    color: var(--textcolpr);
+  }
+  
+  .no-events-message {
+    color: #888;
+    text-align: center;
+  }
+  .action-card {
+    background: #f5f5f5;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+  }
+  
+  .action-card.past-event {
+    background-color: #f6f9fc;
+  }
+  
+  .schedule-button {
+    width: 100%;
+  }
+  
+  .cancel-button {
+    margin-top: 8px;
+  }
+  
+  .no-events-message {
+    color: #888;
+    text-align: center;
+  }
+  

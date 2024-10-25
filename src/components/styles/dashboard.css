@@ -1,0 +1,62 @@
+.dashboard{
+    background-color: var(--secondarybg);
+    border-radius: 5px;
+}
+
+.mindatabox{
+    width: 100%;
+    height: 12vh;
+    display: flex;
+    justify-content: space-between;
+    /* filter: blur(1px); */
+}
+
+.minidata{
+    flex-basis: 24.2%;
+    background-color: var(--tertiarybg);
+    border-radius: 5px;
+    padding: 5px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: inherit;
+}
+
+.minicount{
+    color: var(--textcolsc);
+    font-size: 200%;
+}
+
+
+.graphsbox{
+    width: 100%;
+    margin-top: 1vh;
+    height: 72vh;
+    /* background-color: black; */
+    background-color: var(--tertiarybg);
+    border-radius: 5px;
+    /* filter: blur(1px) ;
+    backdrop-filter: 10px; */
+    display: flex;
+
+}
+
+.maingraph{
+
+    flex-basis: 63%;
+    border: 1px solid #aeb9e141;
+    border-top-left-radius: inherit;
+    border-bottom-left-radius: inherit;
+}
+
+.others{
+    display: flex;
+    flex-direction: column;
+    flex-basis: 37%;
+}
+.firstminor{
+
+    flex-basis: 50%;
+    border: 1px solid #aeb9e141;
+    width: 100%;
+}
