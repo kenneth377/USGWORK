@@ -3,19 +3,26 @@ import './styles/activities.css';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import imgavatar from "../components/img/avatar.svg";
 import { FetchData } from './Fectchdata';
-import { Modal } from 'antd';
-import dayjs from 'dayjs'; // Import dayjs for date formatting
+import { Modal, DatePicker } from 'antd';
+import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+
+dayjs.extend(isBetween);
+dayjs.extend(advancedFormat);
+
+const { RangePicker } = DatePicker;
 
 export default function Activities() {
   const [filterAction, setFilterAction] = useState('');
-  const [filterTimestamp, setFilterTimestamp] = useState('');
+  const [dateRange, setDateRange] = useState([null, null]); // Ensure it's an array
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-  const [activityData, setActivityData] = useState([]); // Fetched data from API
-  const [services, setServices] = useState({}); // Service data
+  const [activityData, setActivityData] = useState([]);
+  const [services, setServices] = useState({});
   const [users, setUsers] = useState({});
-  const [selectedActivity, setSelectedActivity] = useState(null); // Holds data for the clicked row
+  const [selectedActivity, setSelectedActivity] = useState(null);
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -60,13 +67,19 @@ export default function Activities() {
 
   const filteredData = activityData.filter((activity) => {
     const matchesAction = filterAction ? activity.action === filterAction : true;
-    const matchesTimestamp = filterTimestamp ? activity.timestamp.includes(filterTimestamp) : true;
+    const [startDate, endDate] = dateRange; // Ensure dateRange is iterable
+
+    const activityDate = dayjs(activity.timestamp);
+    const matchesDateRange = Array.isArray(dateRange) && dateRange.every(date => date) // Check if dateRange is an array and all elements exist
+      ? activityDate.isBetween(dayjs(startDate), dayjs(endDate), null, '[]')
+      : true;
+
     const matchesSearch = searchTerm
       ? activity.user_id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
         activity.id.toString().includes(searchTerm)
       : true;
 
-    return matchesAction && matchesTimestamp && matchesSearch;
+    return matchesAction && matchesDateRange && matchesSearch;
   });
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -75,7 +88,7 @@ export default function Activities() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterAction, filterTimestamp, searchTerm]);
+  }, [filterAction, dateRange, searchTerm]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
@@ -116,13 +129,12 @@ export default function Activities() {
         </div>
 
         <div className="filter-item">
-          <label htmlFor="timestampFilter">Timestamp</label>
-          <input
-            type="text"
-            id="timestampFilter"
-            placeholder="YYYY-MM-DD"
-            value={filterTimestamp}
-            onChange={(e) => setFilterTimestamp(e.target.value)}
+          <label htmlFor="dateRangeFilter">Date Range</label>
+          <RangePicker
+            id="dateRangeFilter"
+            format="YYYY-MM-DD"
+            value={dateRange}
+            onChange={(dates) => setDateRange(dates || [null, null])} // Ensure dates is an array
             className="filter-input"
           />
         </div>
@@ -220,7 +232,6 @@ export default function Activities() {
         </button>
       </div>
 
-      {/* Modal for row details */}
       <Modal
         title="Activity Details"
         visible={!!selectedActivity}
