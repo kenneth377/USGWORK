@@ -44,7 +44,7 @@
 }
 
 .activity-table tr:hover {
-  background-color: black;
+  background-color: blue;
 }
 
 .activity-table th {
@@ -104,5 +104,5 @@
 }
 
 .icon-stopped {
-  color: red;
+  color: white;
 }

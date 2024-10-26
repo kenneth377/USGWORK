@@ -133,6 +133,9 @@ export default function Scheduler() {
 
   const filteredEvents = selectedDate ? (scheduledActions[selectedDate.toDate().toLocaleDateString()] || []) : [];
 
+  // Check if the selected date is before today
+  const isPastSelectedDate = selectedDate ? selectedDate.toDate() < new Date().setHours(0, 0, 0, 0) : false;
+
   return (
     <div className="schedule-container">
       <h2 className="schedule-title">Scheduled Actions</h2>
@@ -144,9 +147,11 @@ export default function Scheduler() {
         visible={viewModalVisible}
         onCancel={() => setViewModalVisible(false)}
         footer={[
-          <Button key="add" type="primary" onClick={openScheduleModal}>
-            <AiOutlinePlus /> Schedule New Action
-          </Button>,
+          !isPastSelectedDate && ( // Only show the button if the selected date is today or in the future
+            <Button key="add" type="primary" onClick={openScheduleModal}>
+              <AiOutlinePlus /> Schedule New Action
+            </Button>
+          ),
         ]}
       >
         <div className="actions-list">

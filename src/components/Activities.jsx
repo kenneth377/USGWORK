@@ -3,6 +3,8 @@ import './styles/activities.css';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import imgavatar from "../components/img/avatar.svg";
 import { FetchData } from './Fectchdata';
+import { Modal } from 'antd';
+import dayjs from 'dayjs'; // Import dayjs for date formatting
 
 export default function Activities() {
   const [filterAction, setFilterAction] = useState('');
@@ -12,13 +14,14 @@ export default function Activities() {
   const itemsPerPage = 8;
   const [activityData, setActivityData] = useState([]); // Fetched data from API
   const [services, setServices] = useState({}); // Service data
-  const [users, setUsers] = useState({})
+  const [users, setUsers] = useState({});
+  const [selectedActivity, setSelectedActivity] = useState(null); // Holds data for the clicked row
 
   useEffect(() => {
     const fetchLogs = async () => {
       try {
         const data = await FetchData('http://localhost:3000/logs');
-        setActivityData(data.data || []); // Assuming `data.data` holds the array
+        setActivityData(data.data || []);
       } catch (error) {
         console.error("Error fetching activity data:", error);
       }
@@ -40,21 +43,19 @@ export default function Activities() {
     const fetchUsers = async () => {
       try {
         const data = await FetchData('http://localhost:3000/users');
-        console.log("datu", data)
         const usersMap = data.users.reduce((map, user) => {
           map[user.id] = user.name;
           return map;
         }, {});
-        console.log("sjeskds", usersMap)
         setUsers(usersMap);
       } catch (error) {
-        console.error("Error fetching services:", error);
+        console.error("Error fetching users:", error);
       }
     };
 
     fetchLogs();
     fetchServices();
-    fetchUsers()
+    fetchUsers();
   }, []);
 
   const filteredData = activityData.filter((activity) => {
@@ -83,6 +84,19 @@ export default function Activities() {
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
+
+  const handleRowClick = (activity) => {
+    setSelectedActivity(activity);
+  };
+
+  const handleModalClose = () => {
+    setSelectedActivity(null);
+  };
+
+  const truncateText = (text, maxLength = 15) =>
+    text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+
+  const formatTimestamp = (timestamp) => dayjs(timestamp).format('MMMM D, YYYY h:mm A');
 
   return (
     <div className="activities-container">
@@ -141,9 +155,15 @@ export default function Activities() {
           <tbody>
             {paginatedData.length > 0 ? (
               paginatedData.map((activity) => (
-                <tr key={activity.id}>
+                <tr
+                  key={activity.id}
+                  onClick={() => handleRowClick(activity)}
+                  style={{
+                    backgroundColor: activity.id % 2 === 0 ? '#081028' : '#1f1d2f',
+                  }}
+                >
                   <td>{activity.id}</td>
-                  <td>{services[activity.service_id] || "Unknown Service"}</td>
+                  <td>{truncateText(services[activity.service_id] || "Unknown Service")}</td>
                   <td>
                     <div className="user-info">
                       <img
@@ -151,7 +171,7 @@ export default function Activities() {
                         alt={`User ID: ${activity.user_id}`}
                         className="user-avatar"
                       />
-                      <span className="user-id">{users[activity.user_id]}</span>
+                      <span className="user-id">{truncateText(users[activity.user_id] || "Unknown User")}</span>
                     </div>
                   </td>
                   <td>
@@ -164,11 +184,9 @@ export default function Activities() {
                     </span>
                   </td>
                   <td className="reason-column">
-                    {activity.reason.length > 10
-                      ? `${activity.reason.slice(0, 10)}...`
-                      : activity.reason}
+                    {activity.reason.length > 10 ? `${activity.reason.slice(0, 10)}...` : activity.reason}
                   </td>
-                  <td>{activity.timestamp}</td>
+                  <td>{formatTimestamp(activity.timestamp)}</td>
                 </tr>
               ))
             ) : (
@@ -201,6 +219,25 @@ export default function Activities() {
           Next
         </button>
       </div>
+
+      {/* Modal for row details */}
+      <Modal
+        title="Activity Details"
+        visible={!!selectedActivity}
+        onCancel={handleModalClose}
+        footer={null}
+      >
+        {selectedActivity && (
+          <div className="activity-details">
+            <p><strong>ID:</strong> {selectedActivity.id}</p>
+            <p><strong>Service Name:</strong> {services[selectedActivity.service_id] || "Unknown Service"}</p>
+            <p><strong>User:</strong> {users[selectedActivity.user_id] || "Unknown User"}</p>
+            <p><strong>Action:</strong> {selectedActivity.action}</p>
+            <p><strong>Reason:</strong> {selectedActivity.reason}</p>
+            <p><strong>Timestamp:</strong> {formatTimestamp(selectedActivity.timestamp)}</p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
