@@ -44,7 +44,8 @@
 }
 
 .activity-table tr:hover {
-  background-color: blue;
+  background: blue;
+  cursor: pointer;
 }
 
 .activity-table th {

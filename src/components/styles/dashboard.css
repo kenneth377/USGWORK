@@ -60,3 +60,13 @@
     border: 1px solid #aeb9e141;
     width: 100%;
 }
+
+.usermini{
+    display: flex;
+    justify-content: space-around;
+    color: white;
+    font-size: 120%;
+}
+
+
+.miniuser:hover{cursor: pointer;}
