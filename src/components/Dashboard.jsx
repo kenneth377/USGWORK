@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import "./styles/dashboard.css"
+import { Allcontext } from '../Allcontext'
 
 export default function Dashboard() {
+
+    const {users, services, activityData} = useContext(Allcontext)
+    console.log("dashi",activityData)
   return (
     <div className='dashboard'>
         <div className="mindatabox">
@@ -9,13 +13,13 @@ export default function Dashboard() {
                 <p className="minihead">
                     Total services
                 </p>
-                <p className="minicount">24</p>
+                <p className="minicount">{Object.keys(services).length}</p>
             </div>
             <div className='minidata'>
             <p className="minihead">
-                    Total services
+                    Total Logs
                 </p>
-                <p className="minicount">24</p>
+                <p className="minicount">{activityData.length}</p>
             </div>
             <div className='minidata'>
             <p className="minihead">

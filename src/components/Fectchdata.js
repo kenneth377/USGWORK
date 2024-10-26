@@ -6,7 +6,6 @@ export const FetchData = async (link) => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log("dati",data);
         return data
     } catch (err) {
         console.error("Fetch error:", err);
@@ -31,7 +30,6 @@ export const postData = async (link, data) => {
         }
 
         const result = await response.json();
-        console.log("Data posted:", result);
         
         // Return success status and result
         return { success: true, data: result };
@@ -58,7 +56,6 @@ export const updateData = async (link, data) => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const result = await response.json();
-        console.log("Data updated:", result);
         return { success: true, data: result };
     } catch (err) {
         console.error("Update error:", err);

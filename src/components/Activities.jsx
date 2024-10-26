@@ -15,7 +15,7 @@ const { RangePicker } = DatePicker;
 
 export default function Activities() {
   const [filterAction, setFilterAction] = useState('');
-  const [dateRange, setDateRange] = useState([null, null]); // Ensure it's an array
+  const [dateRange, setDateRange] = useState([null, null]); 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -67,10 +67,10 @@ export default function Activities() {
 
   const filteredData = activityData.filter((activity) => {
     const matchesAction = filterAction ? activity.action === filterAction : true;
-    const [startDate, endDate] = dateRange; // Ensure dateRange is iterable
+    const [startDate, endDate] = dateRange; 
 
     const activityDate = dayjs(activity.timestamp);
-    const matchesDateRange = Array.isArray(dateRange) && dateRange.every(date => date) // Check if dateRange is an array and all elements exist
+    const matchesDateRange = Array.isArray(dateRange) && dateRange.every(date => date)
       ? activityDate.isBetween(dayjs(startDate), dayjs(endDate), null, '[]')
       : true;
 
@@ -134,7 +134,7 @@ export default function Activities() {
             id="dateRangeFilter"
             format="YYYY-MM-DD"
             value={dateRange}
-            onChange={(dates) => setDateRange(dates || [null, null])} // Ensure dates is an array
+            onChange={(dates) => setDateRange(dates || [null, null])}
             className="filter-input"
           />
         </div>
