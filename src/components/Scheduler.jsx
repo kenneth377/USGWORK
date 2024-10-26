@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { AiOutlinePlus } from 'react-icons/ai';
 import { Button, Form, Input, Select, DatePicker, Modal, Calendar, Badge, message } from 'antd';
-import { postData, FetchData } from './Fectchdata'; // Ensure fetchData is defined in your FetchData file
+import { postData, FetchData } from './Fectchdata';
 import './styles/schedule.css';
 
 const { Option } = Select;
-
-const initialEvents = [];
-
 const mockServices = [
   { id: 1, name: "Auth Service" },
   { id: 2, name: "Database Service" },
@@ -15,8 +12,9 @@ const mockServices = [
 ];
 
 export default function Scheduler() {
-  const [scheduledActions, setScheduledActions] = useState(initialEvents);
-  const [popupVisible, setPopupVisible] = useState(false);
+  const [scheduledActions, setScheduledActions] = useState({});
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [form] = Form.useForm();
   const [services, setServices] = useState([]);
@@ -36,7 +34,25 @@ export default function Scheduler() {
       }
     };
 
+    const fetchScheduledActions = async () => {
+      try {
+        const response = await FetchData('http://localhost:3000/scheduled-activities');
+        if (response.responsestatus === "success") {
+          const actionsByDate = response.data.reduce((acc, action) => {
+            const date = new Date(action.activity_time).toLocaleDateString();
+            if (!acc[date]) acc[date] = [];
+            acc[date].push(action);
+            return acc;
+          }, {});
+          setScheduledActions(actionsByDate);
+        }
+      } catch (error) {
+        console.error("Error fetching scheduled actions:", error);
+      }
+    };
+
     fetchServices();
+    fetchScheduledActions();
   }, []);
 
   const handleScheduleAction = async (values) => {
@@ -52,88 +68,111 @@ export default function Scheduler() {
 
     const response = await postData('http://localhost:3000/scheduled-activities', newAction);
     if (response.success) {
-      setScheduledActions((prev) => [...prev, newAction]);
+      const actionDate = new Date(newAction.activity_time).toLocaleDateString();
+      setScheduledActions((prev) => ({
+        ...prev,
+        [actionDate]: [...(prev[actionDate] || []), newAction],
+      }));
       message.success('Action scheduled successfully.');
       form.resetFields();
-      setPopupVisible(false);
+      setScheduleModalVisible(false);
     } else {
       message.error(`Error scheduling action: ${response.error}`);
     }
   };
 
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-  };
-
-  const getEventCount = (date) => {
-    return scheduledActions.filter(action => {
-      const actionDate = new Date(action.actionTime);
-      return actionDate.toLocaleDateString() === date.toDate().toLocaleDateString();
-    }).length;
-  };
-
-  const filteredEvents = selectedDate
-    ? scheduledActions.filter(action => {
-        const actionDate = new Date(action.actionTime);
-        return actionDate.toLocaleDateString() === selectedDate.toDate().toLocaleDateString();
-      })
-    : [];
-
-  const dateCellRender = (value) => {
-    const count = getEventCount(value);
-
-    console.log("myval", value)
-    return (
-      <div style={{ textAlign: 'center' }}>
-        {count > 0 ? (
-          <Badge count={`${value.date()}: ${count}`} style={{ backgroundColor: '#52c41a' }} />
-        ) : (
-          <Badge count={count} />
-        )}
-      </div>
-    );
-  };
-
   const handleDateClick = (value) => {
     setSelectedDate(value);
+    setViewModalVisible(true);
   };
 
-  const handleCancelAction = (index) => {
-    setScheduledActions((prev) =>
-      prev.map((action, i) =>
-        i === index ? { ...action, status: "Cancelled" } : action
-      )
-    );
+  const openScheduleModal = () => {
+    form.setFieldsValue({ actionTime: selectedDate });
+    setScheduleModalVisible(true);
   };
+
+  const dateCellRender = (value) => {
+    const dateStr = value.toDate().toLocaleDateString();
+    const actions = scheduledActions[dateStr] || [];
+    const now = new Date();
+
+    const isPastDate = value.toDate() < new Date(now.setHours(0, 0, 0, 0));
+
+    if (actions.length > 0) {
+      if (isPastDate) {
+        return (
+          <div style={{ textAlign: 'center' }}>
+            <Badge count={actions.length} style={{ backgroundColor: 'darkblue' }} />
+          </div>
+        );
+      } else if (dateStr === now.toLocaleDateString()) {
+        const upcomingActions = actions.filter(action => new Date(action.activity_time) > now);
+        const pastActions = actions.filter(action => new Date(action.activity_time) <= now);
+
+        return (
+          <div style={{ textAlign: 'center' }}>
+            {pastActions.length > 0 && (
+              <Badge count={pastActions.length} style={{ backgroundColor: 'darkblue', marginRight: 4 }} />
+            )}
+            {upcomingActions.length > 0 && (
+              <Badge count={upcomingActions.length} style={{ backgroundColor: '#52c41a' }} />
+            )}
+          </div>
+        );
+      } else {
+        return (
+          <div style={{ textAlign: 'center' }}>
+            <Badge count={actions.length} style={{ backgroundColor: '#52c41a' }} />
+          </div>
+        );
+      }
+    }
+
+    return <div style={{ textAlign: 'center' }}><Badge count={0} /></div>;
+  };
+
+  const filteredEvents = selectedDate ? (scheduledActions[selectedDate.toDate().toLocaleDateString()] || []) : [];
 
   return (
     <div className="schedule-container">
       <h2 className="schedule-title">Scheduled Actions</h2>
-      <DatePicker onChange={handleDateChange} style={{ marginBottom: 16 }} />
+      <DatePicker onChange={(date) => setSelectedDate(date)} style={{ marginBottom: 16 }} />
       <Calendar dateCellRender={dateCellRender} onSelect={handleDateClick} style={{ marginBottom: 16 }} />
-      <div className="actions-list">
-        {filteredEvents.length > 0 ? (
-          filteredEvents.map((action, index) => (
-            <div key={index} className={`action-card ${action.status === 'Cancelled' ? 'past-event' : ''}`}>
-              <h3>{action.selectedService}</h3>
-              <p><strong>Type:</strong> {action.actionType === 'automatic' ? 'Automatic Action' : 'Alert'}</p>
-              <p><strong>Reason:</strong> {action.scheduleReason}</p>
-              <p><strong>Date:</strong> {new Date(action.actionTime).toLocaleString()}</p>
-              <p><strong>Action:</strong> {action.serviceAction.charAt(0).toUpperCase() + action.serviceAction.slice(1)}</p>
-              <p><strong>Status:</strong> {action.status}</p>
-              {action.status === "pending" && (
-                <Button className="cancel-button" onClick={() => handleCancelAction(index)}>Cancel</Button>
-              )}
-            </div>
-          ))
-        ) : (
-          <p className="no-events-message">No events scheduled for this date.</p>
-        )}
-      </div>
-      <Button type="primary" className="floating-button" onClick={() => setPopupVisible(true)}>
-        <AiOutlinePlus size={24} />
-      </Button>
-      <Modal title="Schedule New Action" visible={popupVisible} onCancel={() => setPopupVisible(false)} footer={null}>
+
+      <Modal
+        title={`Scheduled Activities for ${selectedDate ? selectedDate.format("YYYY-MM-DD") : ""}`}
+        visible={viewModalVisible}
+        onCancel={() => setViewModalVisible(false)}
+        footer={[
+          <Button key="add" type="primary" onClick={openScheduleModal}>
+            <AiOutlinePlus /> Schedule New Action
+          </Button>,
+        ]}
+      >
+        <div className="actions-list">
+          {filteredEvents.length > 0 ? (
+            filteredEvents.map((action, index) => (
+              <div key={index} className={`action-card ${action.status === 'Cancelled' ? 'past-event' : ''}`}>
+                <h3>{action.selectedService}</h3>
+                <p><strong>Type:</strong> {action.action_type === 'automatic' ? 'Automatic Action' : 'Alert'}</p>
+                <p><strong>Reason:</strong> {action.schedule_reason}</p>
+                <p><strong>Date:</strong> {new Date(action.activity_time).toLocaleString()}</p>
+                <p><strong>Action:</strong> {action.service_action.charAt(0).toUpperCase() + action.service_action.slice(1)}</p>
+                <p><strong>Status:</strong> {action.status}</p>
+              </div>
+            ))
+          ) : (
+            <p className="no-events-message">No events scheduled for this date.</p>
+          )}
+        </div>
+      </Modal>
+
+      <Modal
+        title="Schedule New Action"
+        visible={scheduleModalVisible}
+        onCancel={() => setScheduleModalVisible(false)}
+        footer={null}
+      >
         <Form form={form} onFinish={handleScheduleAction}>
           <Form.Item name="selectedService" label="Select Service" rules={[{ required: true, message: 'Please select a service!' }]}>
             <Select placeholder="--Select a Service--">
