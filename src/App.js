@@ -15,6 +15,7 @@ function App() {
   const [activityData, setActivityData] = useState([]);
   const [services, setServices] = useState({});
   const [users, setUsers] = useState({});
+  const [scheduledActions, setScheduledActions] = useState({});
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -55,6 +56,25 @@ function App() {
       }
     };
 
+    const fetchScheduledActions = async () => {
+      try {
+        const response = await FetchData('http://localhost:3000/scheduled-activities');
+        if (response.responsestatus === "success") {
+          // const actionsByDate = response.data.reduce((acc, action) => {
+          //   const date = new Date(action.activity_time).toLocaleDateString();
+          //   if (!acc[date]) acc[date] = [];
+          //   acc[date].push(action);
+          //   return acc;
+          // }, {});
+          // setScheduledActions(actionsByDate);
+          setScheduledActions(response.data)
+        }
+      } catch (error) {
+        console.error("Error fetching scheduled actions:", error);
+      }
+    };
+
+    fetchScheduledActions();
     fetchLogs();
     fetchServices();
     fetchUsers();
@@ -62,7 +82,7 @@ function App() {
 
 
   return (
-    <Allcontext.Provider value={{users, services, activityData}}>
+    <Allcontext.Provider value={{users, services, activityData, scheduledActions}}>
 
       <Router>
         <div className="App">

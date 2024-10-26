@@ -4,10 +4,16 @@ import "./styles/dashboard.css";
 import { Allcontext } from '../Allcontext';
 import DoughnutChart from './DoughnutChart';
 import Linegraph from './Linegraph';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
-    const { users, services, activityData } = useContext(Allcontext);
+    const { users, services, activityData, scheduledActions } = useContext(Allcontext);
     const [isModalVisible, setIsModalVisible] = useState(false);
+
+    // Check if scheduledActions is an array, or else default to an empty array
+    const recentsched = Array.isArray(scheduledActions) ? scheduledActions.slice(0, 3) : [];
+
+    const navigate = useNavigate();
 
     const usertoactionsmap = activityData.reduce((acc, obj) => {
         const existing = acc.find(item => item.user_id === obj.user_id);
@@ -31,6 +37,9 @@ export default function Dashboard() {
     };
 
     const isLoading = !users || !activityData || !services;
+    const refinedsched = recentsched.map((item)=>{
+
+    })
 
     return (
         <div className='dashboard'>
@@ -48,7 +57,7 @@ export default function Dashboard() {
                     </div>
                     <div className='minidata miniuser' onClick={handleOpenModal}>
                         <p className="minihead">Most active User</p>
-                        {maxUser && users[maxUser.user_id] ? ( // Check if maxUser and corresponding user exist
+                        {maxUser && users[maxUser.user_id] ? (
                             <p className="usermini">
                                 <span className="activeusername">{users[maxUser.user_id].slice(0, 10)}...</span> {maxUser.count} actions
                             </p>
@@ -63,14 +72,30 @@ export default function Dashboard() {
                 </div>
             )}
             <div className="graphsbox">
-                <div className="maingraph" style={{padding:"10px"}}>
+                <div className="maingraph" style={{ padding: "10px" }}>
                     <Linegraph />
                 </div>
                 <div className="others">
                     <div className="firstminor">
-                        <DoughnutChart/>
+                        <DoughnutChart />
                     </div>
-                    <div className="lastminor"></div>
+                    <div className="lastminor">
+                        <div>Recently scheduled activities</div>
+                        {recentsched.length > 0 ? (
+                            recentsched.map((item, index) => (
+                                <div className="sched" key={index}>
+                                    <div className="schedservice">{`${services[item.service_id].slice(0,12)}...` || 'Service'}</div>
+                                    <div className="scheduser">{`${users[item.user_id].slice(0,7)}...` || 'User'}</div>
+                                    <div className="schedaction">{item.service_action || 'Action'}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <div>No recent scheduled activities.</div>
+                        )}
+                        <button className='schedbtn' onClick={() => {
+                            navigate("/scheduler")
+                        }}>See all</button>
+                    </div>
                 </div>
             </div>
 

@@ -1,69 +1,64 @@
-import React from 'react';
-import {
-  LineChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Line,
-} from 'recharts';
+import React, { useEffect, useState, useContext } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { Card } from 'antd';
+import { Allcontext } from '../Allcontext'; // Adjust the import according to your project structure
 
-// Sample data for the graph
-const data = [
-  { date: '2024-10-01', serviceA: 5, serviceB: 3 },
-  { date: '2024-10-02', serviceA: 2, serviceB: 4 },
-  { date: '2024-10-03', serviceA: 1, serviceB: 2 },
-  { date: '2024-10-04', serviceA: 3, serviceB: 5 },
-  { date: '2024-10-05', serviceA: 4, serviceB: 1 },
-];
+const LineGraph = () => {
+    const { activityData, services } = useContext(Allcontext);
+    const [data, setData] = useState([]);
 
-const Linegraph = () => {
-  return (
-    <div style={{ marginLeft: "-30px", width: '100%', height: '90%' }}>
-      <h4>Service Toggle Trends</h4>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          {/* Define gradients */}
-          <defs>
-            <linearGradient id="colorServiceA" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8884d8" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#8884d8" stopOpacity={0} />
-            </linearGradient>
-            <linearGradient id="colorServiceB" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#82ca9d" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#82ca9d" stopOpacity={0} />
-            </linearGradient>
-          </defs>
+    useEffect(() => {
+        const serviceDuration = {};
 
-          <XAxis dataKey="date" axisLine={false} tickLine={false} />
-          <YAxis axisLine={false} tickLine={false} />
-          <Tooltip />
+        // Process logs to calculate the running time of each service
+        console.log(services, activityData);
+        activityData.forEach(log => {
+            const { action, service_id, timestamp } = log;
+            const time = new Date(timestamp).getTime();
 
-          {/* Customized Legend with red color */}
-          <Legend
-            formatter={(value) => <span style={{ color: '#AEB9E1' }}>{value}</span>}
-          />
+            if (!serviceDuration[service_id]) {
+                serviceDuration[service_id] = { lastStarted: 0, lastStopped: 0, isRunning: false, onDuration: 0, offDuration: 0 };
+            }
 
-          {/* Lines with gradient fill */}
-          <Line
-            type="monotone"
-            dataKey="serviceA"
-            stroke="#8884d8"
-            fill="url(#colorServiceA)"
-            fillOpacity={1}
-          />
-          <Line
-            type="monotone"
-            dataKey="serviceB"
-            stroke="#82ca9d"
-            fill="url(#colorServiceB)"
-            fillOpacity={1}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
+            if (action === 'started') {
+                if (!serviceDuration[service_id].isRunning) {
+                    serviceDuration[service_id].offDuration += Math.floor((time - serviceDuration[service_id].lastStopped) / 1000);
+                }
+                serviceDuration[service_id].lastStarted = time;
+                serviceDuration[service_id].isRunning = true; // Mark service as running
+            } else if (action === 'stopped') {
+                if (serviceDuration[service_id].isRunning) {
+                    serviceDuration[service_id].onDuration += Math.floor((time - serviceDuration[service_id].lastStarted) / 1000);
+                }
+                serviceDuration[service_id].lastStopped = time; // Update last stopped time
+                serviceDuration[service_id].isRunning = false; // Mark service as stopped
+            }
+        });
+        console.log(serviceDuration);
+
+        // Prepare data for the line graph
+        const graphData = Object.keys(serviceDuration).map(serviceId => ({
+            serviceId: services[serviceId], // Use service name from services context
+            onDuration: serviceDuration[serviceId].onDuration, // Duration the service has been on
+            offDuration: serviceDuration[serviceId].offDuration, // Duration the service has been off
+        }));
+
+        setData(graphData);
+    }, [activityData, services]);
+
+    return (
+        <Card title="Service Running and Off Time" style={{  background: 'transparent', border: 'none' }}>
+            <LineChart width={600} height={300} data={data}>
+                <CartesianGrid stroke="none" /> {/* Remove the grid background */}
+                <XAxis dataKey="serviceId" hide={true} /> {/* Hide X Axis */}
+                <YAxis hide={true} /> {/* Hide Y Axis */}
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="onDuration" stroke="#8884d8" name="On Duration (s)" />
+                <Line type="monotone" dataKey="offDuration" stroke="#82ca9d" name="Off Duration (s)" />
+            </LineChart>
+        </Card>
+    );
 };
 
-export default Linegraph;
+export default LineGraph;
