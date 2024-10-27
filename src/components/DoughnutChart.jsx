@@ -1,17 +1,29 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card } from 'antd';
+import { Allcontext } from '../Allcontext';
 
-const data = [
-  { name: 'Running', value: 400, description: 'Services currently running' },
-  { name: 'Stopped', value: 300, description: 'Services that are stopped' },
-  { name: 'Down', value: 300, description: 'Services that are down' },
-];
-
-const COLORS = ['#bBbbff', '#0038FF', '#CB3CFF'];
+const COLORS = ['#bBbbff', '#0B1779']; // Color for "start" and "stop"
 
 const DoughnutChart = () => {
+  const { activityData } = useContext(Allcontext);
+  const [data, setData] = useState([
+    { name: 'Start', value: 0 },
+    { name: 'Stop', value: 0 },
+  ]);
   const [activeIndex, setActiveIndex] = useState(null);
+
+  useEffect(() => {
+    if (activityData) {
+      const startCount = activityData.filter(log => log.action === 'started').length;
+      const stopCount = activityData.filter(log => log.action === 'stopped').length;
+
+      setData([
+        { name: 'Start', value: startCount },
+        { name: 'Stop', value: stopCount },
+      ]);
+    }
+  }, [activityData]);
 
   const handleMouseEnter = (index) => {
     setActiveIndex(index);
@@ -21,10 +33,9 @@ const DoughnutChart = () => {
     setActiveIndex(null);
   };
 
-
   return (
     <Card style={{ width: 300, margin: 'auto', backgroundColor: 'transparent', border: 'none' }}>
-      <div style={{ padding: '0px', color: '#AEB9E1', fontWeight: 'bold', fontSize: '16px' }}>Service Status</div>
+      <div style={{ padding: '0px', color: '#AEB9E1', fontWeight: 'bold', fontSize: '16px' }}>Activity Status</div>
       <ResponsiveContainer width="100%" height={200}>
         <PieChart>
           <Tooltip 
@@ -48,11 +59,11 @@ const DoughnutChart = () => {
               const isActive = index === activeIndex;
               const offsetX = isActive ? 2 : 0;
               const offsetY = isActive ? 2 : 0;
-                
+
               return (
                 <Cell
                   key={entry.name}
-                  fill={COLORS[index % COLORS.length]}
+                  fill={COLORS[index]}
                   cx={isActive ? `calc(50% + ${offsetX}px)` : '50%'}
                   cy={isActive ? `calc(50% + ${offsetY}px)` : '50%'}
                 />

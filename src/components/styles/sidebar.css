@@ -10,8 +10,10 @@
     align-items: center;
 }
 
-.logo {
+.sidebar>.logo {
     flex-basis: 15%;
+    font-size: 150%;
+    padding: 20px;    
 }
 
 .navlinks {

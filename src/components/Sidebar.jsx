@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Modal, Input, Button } from 'antd';
+import { Modal, Input, Button, message } from 'antd';
 import "./styles/sidebar.css";
-import { FaServer } from 'react-icons/fa';
+import { Allcontext } from '../Allcontext';
+import logoimg from "./img/logoimg.png"
 
-export default function Sidebar() {
+export default function Sidebar({ setIsAuthenticated }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [lockdownStep, setLockdownStep] = useState(0);
   const [password, setPassword] = useState('');
   const [inLockdown, setInLockdown] = useState(false);
+  const { nowuser } = useContext(Allcontext);
 
   const handleLockdown = () => {
     if (location.pathname === '/services') {
@@ -18,13 +20,30 @@ export default function Sidebar() {
     setLockdownStep(1);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (lockdownStep < 4) {
       setLockdownStep(lockdownStep + 1);
     } else {
-      setInLockdown(true);
-      setLockdownStep(0);
-      setPassword('');
+      // Verify password
+      const loginResponse = await fetch('http://localhost:3000/user/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: nowuser.email,
+          password,
+        }),
+      });
+      const loginData = await loginResponse.json();
+
+      if (loginData.responsestatus === 'success') {
+        setInLockdown(true);
+        setLockdownStep(0);
+        setPassword('');
+      } else {
+        message.error('Password is incorrect');
+      }
     }
   };
 
@@ -37,20 +56,45 @@ export default function Sidebar() {
     setLockdownStep(1);
   };
 
-  const handleExitConfirm = () => {
-    
+  const handleExitConfirm = async () => {
     if (lockdownStep < 4) {
       setLockdownStep(lockdownStep + 1);
     } else {
-      setInLockdown(false); 
-      setLockdownStep(0);
-      setPassword('');
+      // Verify password before exiting lockdown
+      const loginResponse = await fetch('http://localhost:3000/user/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: nowuser.email,
+          password,
+        }),
+      });
+      const loginData = await loginResponse.json();
+
+      if (loginData.responsestatus === 'success') {
+        setInLockdown(false);
+        setLockdownStep(0);
+        setPassword('');
+      } else {
+        message.error('Password is incorrect');
+      }
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken'); // Clear the token
+    setIsAuthenticated(false); // Update authentication state
+    navigate('/login'); // Redirect to login page
   };
 
   return (
     <div className='sidebar'>
-      <div className="logo">bankdash</div>
+      <div className="logo">
+        <img src={logoimg} alt="" style={{width:"30px", height:"30px"}}/>
+        <p>bankdash</p>
+      </div>
 
       <div className="navlinks">
         <Link to="/" className={`link ${location.pathname === '/' ? 'active' : ''}`}>Dashboard</Link>
@@ -71,7 +115,7 @@ export default function Sidebar() {
             Lockdown
           </p>
         )}
-        <p className="link">Logout</p>
+        <p className="link" onClick={handleLogout}>Logout</p>
       </div>
 
       <Modal

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { AiOutlinePlus } from 'react-icons/ai';
 import { Button, Form, Input, Select, DatePicker, Modal, Calendar, Badge, message } from 'antd';
 import { postData, FetchData } from './Fectchdata';
 import './styles/schedule.css';
+import { Allcontext } from '../Allcontext';
 
 const { Option } = Select;
 const mockServices = [
@@ -18,6 +19,8 @@ export default function Scheduler() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [form] = Form.useForm();
   const [services, setServices] = useState([]);
+
+  const {users,nowuser} = useContext(Allcontext)
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -57,7 +60,7 @@ export default function Scheduler() {
 
   const handleScheduleAction = async (values) => {
     const newAction = {
-      user_id: 1,
+      user_id: nowuser.id,
       service_id: values.selectedService,
       activity_time: values.actionTime.format(),
       status: "pending",
@@ -136,6 +139,7 @@ export default function Scheduler() {
   // Check if the selected date is before today
   const isPastSelectedDate = selectedDate ? selectedDate.toDate() < new Date().setHours(0, 0, 0, 0) : false;
 
+  console.log("filterede", filteredEvents)
   return (
     <div className="schedule-container">
       <h2 className="schedule-title">Scheduled Actions</h2>
@@ -160,6 +164,8 @@ export default function Scheduler() {
               <div key={index} className={`action-card ${action.status === 'Cancelled' ? 'past-event' : ''}`}>
                 <h3>{action.selectedService}</h3>
                 <p><strong>Type:</strong> {action.action_type === 'automatic' ? 'Automatic Action' : 'Alert'}</p>
+                <p><strong>User:</strong> {users?users[action.user_id]:action.user_id}</p>
+                <p><strong>Service:</strong> {services?services[action.service_id].name:action.service_id}</p>
                 <p><strong>Reason:</strong> {action.schedule_reason}</p>
                 <p><strong>Date:</strong> {new Date(action.activity_time).toLocaleString()}</p>
                 <p><strong>Action:</strong> {action.service_action.charAt(0).toUpperCase() + action.service_action.slice(1)}</p>

@@ -47,7 +47,7 @@ const LineGraph = () => {
     }, [activityData, services]);
 
     return (
-        <Card title="Service Running and Off Time" style={{  background: 'transparent', border: 'none' }}>
+        <Card title={<span style={{ color: '#AEB9E1' }}>Service Running and Off Time</span>} style={{ background: 'transparent', border: 'none' }}>
             <LineChart width={600} height={300} data={data}>
                 <CartesianGrid stroke="none" /> {/* Remove the grid background */}
                 <XAxis dataKey="serviceId" hide={true} /> {/* Hide X Axis */}

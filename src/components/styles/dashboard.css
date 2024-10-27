@@ -38,6 +38,7 @@
     /* filter: blur(1px) ;
     backdrop-filter: 10px; */
     display: flex;
+    overflow-y: auto;
 
 }
 

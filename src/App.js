@@ -1,44 +1,47 @@
-import React ,{useEffect,useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Activities from './components/Activities';
 import Services from './components/Services';
 import Scheduler from './components/Scheduler';
+import Login from './components/Loginpage';
 import { FetchData } from './components/Fectchdata';
 import { Allcontext } from './Allcontext';
 
 function App() {
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activityData, setActivityData] = useState([]);
   const [services, setServices] = useState({});
   const [users, setUsers] = useState({});
   const [scheduledActions, setScheduledActions] = useState({});
+  const [nowuser, setNowuser] = useState({})
+  const [otherservice, setOtherservice] = useState([])
 
-  useEffect(() => {
+  const fetchData = async () => {
     const fetchLogs = async () => {
       try {
         const data = await FetchData('http://localhost:3000/logs');
         setActivityData(data.data || []);
-        console.log("appacts", data.data)
       } catch (error) {
-        console.error("Error fetching activity data:", error);
+        console.error('Error fetching activity data:', error);
       }
     };
 
     const fetchServices = async () => {
       try {
         const data = await FetchData('http://localhost:3000/services');
+     
         const servicesMap = data.data.reduce((map, service) => {
-          map[service.id] = service.name; 
+          map[service.id] = service.name;
           return map;
         }, {});
-        console.log("appuservs", servicesMap)
+        setOtherservice(data.data)
         setServices(servicesMap);
       } catch (error) {
-        console.error("Error fetching services:", error);
+        console.error('Error fetching services:', error);
       }
     };
 
@@ -49,55 +52,59 @@ function App() {
           map[user.id] = user.name;
           return map;
         }, {});
-        console.log("appusers", usersMap)
         setUsers(usersMap);
       } catch (error) {
-        console.error("Error fetching users:", error);
+        console.error('Error fetching users:', error);
       }
     };
 
     const fetchScheduledActions = async () => {
       try {
         const response = await FetchData('http://localhost:3000/scheduled-activities');
-        if (response.responsestatus === "success") {
-          // const actionsByDate = response.data.reduce((acc, action) => {
-          //   const date = new Date(action.activity_time).toLocaleDateString();
-          //   if (!acc[date]) acc[date] = [];
-          //   acc[date].push(action);
-          //   return acc;
-          // }, {});
-          // setScheduledActions(actionsByDate);
-          setScheduledActions(response.data)
-        }
+        setScheduledActions(response.data);
       } catch (error) {
-        console.error("Error fetching scheduled actions:", error);
+        console.error('Error fetching scheduled actions:', error);
       }
     };
 
-    fetchScheduledActions();
     fetchLogs();
     fetchServices();
     fetchUsers();
-  }, []);
+    fetchScheduledActions();
+  };
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated]);
+  console.log("atyy", otherservice)
 
   return (
-    <Allcontext.Provider value={{users, services, activityData, scheduledActions}}>
-
+    <Allcontext.Provider value={{ users, services, activityData, scheduledActions ,nowuser, setNowuser, otherservice}}>
       <Router>
         <div className="App">
-          <Sidebar />
-          <Header />
-          <div className="content">
+          {isAuthenticated ? (
+            <>
+              <Sidebar setIsAuthenticated={setIsAuthenticated} /> {/* Pass the prop */}
+              <Header />
+              <div className="content">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/activities" element={<Activities />} />
+                  <Route path="/scheduler" element={<Scheduler />} />
+                </Routes>
+              </div>
+            </>
+          ) : (
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/activities" element={<Activities />} />
-              <Route path="/scheduler" element={<Scheduler />} />
+              <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} nowuser={nowuser} setNowuser={setNowuser}/>} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
-          </div>
+          )}
         </div>
-    </Router>
+      </Router>
     </Allcontext.Provider>
   );
 }

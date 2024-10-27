@@ -123,8 +123,8 @@ export default function Activities() {
             className="filter-select"
           >
             <option value="">All</option>
-            <option value="started">Started</option>
-            <option value="stopped">Stopped</option>
+            <option value="start">Started</option>
+            <option value="stop">Stopped</option>
           </select>
         </div>
 
@@ -171,7 +171,7 @@ export default function Activities() {
                   key={activity.id}
                   onClick={() => handleRowClick(activity)}
                   style={{
-                    backgroundColor: activity.id % 2 === 0 ? '#081028' : '#1f1d2f',
+                    backgroundColor: activity.id % 2 === 0 ? '#081028' : '#111',
                   }}
                 >
                   <td>{activity.id}</td>
@@ -243,7 +243,7 @@ export default function Activities() {
             <p><strong>ID:</strong> {selectedActivity.id}</p>
             <p><strong>Service Name:</strong> {services[selectedActivity.service_id] || "Unknown Service"}</p>
             <p><strong>User:</strong> {users[selectedActivity.user_id] || "Unknown User"}</p>
-            <p><strong>Action:</strong> {selectedActivity.action}</p>
+            <p><strong>Action:</strong> {selectedActivity.action}ed</p>
             <p><strong>Reason:</strong> {selectedActivity.reason}</p>
             <p><strong>Timestamp:</strong> {formatTimestamp(selectedActivity.timestamp)}</p>
           </div>

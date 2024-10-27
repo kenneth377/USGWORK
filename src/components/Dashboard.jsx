@@ -5,6 +5,7 @@ import { Allcontext } from '../Allcontext';
 import DoughnutChart from './DoughnutChart';
 import Linegraph from './Linegraph';
 import { useNavigate } from 'react-router-dom';
+import ServicesAreaChart from './ServicesAreaChart';
 
 export default function Dashboard() {
     const { users, services, activityData, scheduledActions } = useContext(Allcontext);
@@ -73,7 +74,10 @@ export default function Dashboard() {
             )}
             <div className="graphsbox">
                 <div className="maingraph" style={{ padding: "10px" }}>
-                    <Linegraph />
+                    {/* <Linegraph /> */}
+
+                    Service Activity Over Time
+                    <ServicesAreaChart />
                 </div>
                 <div className="others">
                     <div className="firstminor">
